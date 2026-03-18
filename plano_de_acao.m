@@ -143,3 +143,148 @@ Uma funcionalidade só é considerada pronta se:
 **Responsáveis**
 - J: revisar o enunciado e transformar critérios em checklist inicial. liderar diagramas C4 e revisão de consistência (requisito ↔ design).
 - V:  + estrutura inicial de entregáveis. consolidar decisões técnicas e backlog priorizado.
+
+---
+
+### Marco 3 — **28/04/2026 | Implementação base + “walking skeleton”**
+**Objetivo:** ter um esqueleto executável ponta a ponta, mesmo que mínimo.
+
+**Entregas (mínimo viável, mas real)**
+- `assinatura` CLI executa comandos e:
+  - chama `assinador.jar` **localmente** (modo direto) com parâmetros mínimos.
+- `assinador.jar`:
+  - valida parâmetros básicos (já com mensagens de erro claras),
+  - responde a uma simulação simples de assinatura/validação.
+- Primeiros testes:
+  - unitários para validação de parâmetros,
+  - integração mínima CLI → jar.
+
+**Responsáveis**
+- V: integração CLI → jar (modo local) e estrutura de comandos.
+- J: suite de testes inicial + matriz de cenários de erro.
+
+---
+
+### Marco 4 — **05/05/2026 | Modo servidor (HTTP) e contrato de integração**
+**Objetivo:** implementar o segundo modo de invocação (warm start) e documentar o contrato.
+
+**Entregas**
+- `assinador.jar` operando como **servidor HTTP** (start/stop básico) + endpoints necessários.
+- `assinatura` suportando:
+  - modo local (direto)
+  - modo HTTP (servidor)
+- Documento `INTEGRACAO.md`:
+  - como iniciar o servidor,
+  - endpoints e payloads,
+  - exemplos de request/response,
+  - mapeamento de erros.
+
+**Responsáveis**
+- J: validar contrato HTTP e escrever `INTEGRACAO.md`.
+- V: implementar e estabilizar modo HTTP.
+
+---
+
+### Marco 5 — **12/05/2026 | Simulador CLI + download dinâmico via Releases**
+**Objetivo:** cumprir US‑03 (gerenciamento do simulador e download inteligente).
+
+**Entregas**
+- CLI `simulador`:
+  - start / stop / status
+  - checagem de portas antes de iniciar
+- Implementação do **download do `simulador.jar`** via GitHub Releases:
+  - baixa “latest” quando necessário,
+  - não baixa se versão mais recente já está local.
+- Documentação:
+  - `USO_SIMULADOR.md` (ou seção no README) com exemplos.
+
+**Responsáveis**
+- V: lógica de download/cache + integração com releases.
+- J: checagem de portas + validação com cenários (porta ocupada, sem rede, jar ausente).
+
+---
+
+### Marco 6 — **19/05/2026 | Provisionamento automático de JDK (US‑04)**
+**Objetivo:** remover dependência do usuário instalar/configurar Java manualmente.
+
+**Entregas**
+- Detecção de JDK exigido + download/configuração automática:
+  - Windows, Linux, macOS (amd64)
+- Documentação `JDK.md`:
+  - onde instala (diretório local do app),
+  - como limpa cache,
+  - como diagnosticar problemas.
+
+**Responsáveis**
+- J: especificar e testar matriz de ambientes (por OS) + documentação.
+- V: implementação do provisionamento + integração com `assinador` e `simulador`.
+
+---
+
+### Marco 7 — **16/06/2026 | Pipeline de Releases + Cosign + checksums (US‑05 e segurança)**
+**Objetivo:** fechar distribuição profissional e rastreável (releases prontas).
+
+**Entregas**
+- CI/CD produzindo artefatos multiplataforma:
+  - Windows amd64
+  - Linux amd64
+  - macOS amd64
+- Release com:
+  - binários
+  - `SHA256SUMS` (ou equivalente) com checksums
+  - assinatura Cosign para cada artefato:
+    - `<artefato>`
+    - `<artefato>.sig`
+    - `<artefato>.pem`
+- Documento `RELEASE.md`:
+  - como gerar release,
+  - como verificar com `cosign verify-blob`,
+  - convenção de versionamento (SemVer) adotada no projeto.
+
+**Responsáveis**
+- V: pipeline e empacotamento dos binários + checksums.
+- J: Cosign e verificação ponta a ponta + documentação de verificação.
+
+---
+
+### Entrega final — **30/06/2026 | Finalização e validação completa**
+**Objetivo:** consolidar tudo com evidência de qualidade, documentação e reprodutibilidade.
+
+**Entregas finais**
+- Repositório organizado, com:
+  - documentação de uso (manual do usuário do `assinatura`),
+  - documentação técnica de integração,
+  - guias de instalação,
+  - diagramas C4 atualizados,
+  - rastreabilidade requisitos → implementação/testes.
+- Testes e evidências:
+  - unitários e integração (e/ou aceitação automatizada quando aplicável),
+  - checklist final de critérios de aceitação por US (executado e marcado).
+- Release final estável (SemVer) com artefatos e assinaturas (Cosign).
+
+**Responsáveis**
+- V + J: revisão final conjunta (auditável) + “freeze” do repositório.
+
+---
+
+## 5) Checklists (para garantir nota e evitar surpresas)
+
+### 5.1 Checklist por User Story (aceite)
+- [ ] US‑01: CLI cria/valida assinatura e suporta modo local e HTTP
+- [ ] US‑02: `assinador.jar` valida parâmetros rigorosamente + simula operações + erros claros
+- [ ] US‑03: CLI gerencia simulador + verifica portas + baixa jar via Releases (com cache)
+- [ ] US‑04: JDK automático (detectar/baixar/configurar) nas 3 plataformas
+- [ ] US‑05: releases com binários 3 plataformas + SHA256 + SemVer
+
+### 5.2 Checklist de segurança (Cosign / supply chain)
+- [ ] Pipeline assina automaticamente cada artefato na release
+- [ ] Para cada artefato existe `.sig` e `.pem`
+- [ ] Existe documentação de verificação com `cosign verify-blob`
+- [ ] Evidência de verificação bem-sucedida (log/output ou instrução reproduzível)
+
+### 5.3 Checklist de documentação mínima
+- [ ] README com “Como instalar / Como executar / Exemplos”
+- [ ] Manual do usuário do CLI (`assinatura`)
+- [ ] Documentação técnica da integração (local e HTTP)
+- [ ] Guia do provisionamento de JDK
+- [ ] Guia de releases (SemVer + checksums + cosign)
