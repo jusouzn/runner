@@ -1,6 +1,6 @@
 # Runner (Trabalho Prático)
 
-Repositório do **trabalho prático da disciplina**: desenvolvimento do **Sistema Runner** ao longo das aulas, em grupo de **até 2 integrantes**.
+Repositório do **trabalho prático da disciplina de Implementação e Integração de Software**: desenvolvimento do **Sistema Runner** ao longo das aulas, em grupo de **até 2 integrantes**.
 
 Este projeto tem como objetivo **dominar a implementação de software** na prática, incorporando os tópicos apresentados na disciplina (arquitetura, qualidade, testes, automação, releases, segurança de supply chain etc.) e refletindo isso no código e na organização do repositório.
 
