@@ -1,0 +1,17 @@
+# Etapa 1: Usamos a imagem oficial do Go apenas para "pegar" os ficheiros dele
+FROM golang:latest AS go-base
+
+# Etapa 2: Usamos a imagem oficial do Java 21 (com Maven incluído) como a nossa base real
+FROM maven:3.9-eclipse-temurin-21
+
+# Etapa 3: Copiamos o Go da Etapa 1 para a nossa máquina com Java
+COPY --from=go-base /usr/local/go /usr/local/go
+
+# Etapa 4: Dizemos ao sistema onde encontrar o comando "go"
+ENV PATH="${PATH}:/usr/local/go/bin"
+ENV GOPATH="/go"
+ENV PATH="${PATH}:${GOPATH}/bin"
+
+# Etapa 5: Pasta de trabalho e comando para manter o container acordado
+WORKDIR /app
+CMD ["tail", "-f", "/dev/null"]
