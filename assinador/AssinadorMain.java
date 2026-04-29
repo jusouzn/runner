@@ -2,8 +2,17 @@
 package com.runner.assinador;
 
 public class AssinadorMain {
-
+    
+    private static final String VERSION = "0.1.0";
     public static void main(String[] args) {
+        // Suporte para exibir a versão
+        for (String arg : args) {
+            if (arg.equals("--version") || arg.equals("-v")) {
+                System.out.println(VERSION);
+                System.exit(0);
+            }
+        }
+
         // Validação básica: verificar se os parâmetros mínimos foram passados
         if (args.length == 0) {
             imprimirErro("ERR_INVALID_PARAM", "Nenhum parametro fornecido. Esperado: --modo=local");
