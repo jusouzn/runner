@@ -64,7 +64,7 @@ jobs:
         working-directory: projetos/assinador-java
         run: |
           VERSION="${{ steps.ver.outputs.VERSION }}"
-          mvn package -DskipTests
+          ./mvnw package -DskipTests
           cp target/assinador.jar "../../dist/assinador-${VERSION}.jar"
 
       # ── Checksums ─────────────────────────────────────────────────────────
