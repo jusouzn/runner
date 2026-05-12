@@ -9,8 +9,15 @@ projetos/simulador-java/target/
 # PlantUML jar (baixado localmente pelos scripts)
 plantuml.jar
 
-# Binários gerados (distribuídos via GitHub Releases)
+# Binários compilados localmente (distribuídos via GitHub Releases)
 dist/
+projetos/assinatura-go/assinatura
+projetos/assinatura-go/assinatura.exe
+projetos/simulador-go/simulador
+projetos/simulador-go/simulador.exe
+
+# Claude Code (configurações locais do editor)
+.claude/
 
 # OS
 .DS_Store
