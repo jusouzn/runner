@@ -1,0 +1,94 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+# Permissões necessárias:
+#   contents: write  → criar GitHub Release e fazer upload de artefatos
+#   id-token: write  → Cosign keyless signing via OIDC do GitHub Actions
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    name: Build, Sign e Publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Ferramentas ────────────────────────────────────────────────────────
+      - name: Configurar Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: projetos/assinatura-go/go.mod
+          cache-dependency-path: projetos/assinatura-go/go.sum
+
+      - name: Configurar Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Instalar Cosign
+        uses: sigstore/cosign-installer@v3
+
+      # ── Versão ────────────────────────────────────────────────────────────
+      - name: Extrair versão da tag (remove prefixo "v")
+        id: ver
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      # ── Compilação ────────────────────────────────────────────────────────
+      - name: Resolver dependências Go
+        working-directory: projetos/assinatura-go
+        run: go mod tidy
+
+      - name: Compilar CLI assinatura (3 plataformas)
+        working-directory: projetos/assinatura-go
+        run: |
+          VERSION="${{ steps.ver.outputs.VERSION }}"
+          LDFLAGS="-X github.com/jusouzn/assinatura/cmd.Version=${VERSION}"
+          mkdir -p ../../dist
+          GOOS=linux   GOARCH=amd64 go build -ldflags="${LDFLAGS}" \
+            -o "../../dist/assinatura-${VERSION}-linux-amd64" .
+          GOOS=windows GOARCH=amd64 go build -ldflags="${LDFLAGS}" \
+            -o "../../dist/assinatura-${VERSION}-windows-amd64.exe" .
+          GOOS=darwin  GOARCH=amd64 go build -ldflags="${LDFLAGS}" \
+            -o "../../dist/assinatura-${VERSION}-darwin-amd64" .
+
+      - name: Compilar assinador.jar
+        working-directory: projetos/assinador-java
+        run: |
+          VERSION="${{ steps.ver.outputs.VERSION }}"
+          mvn package -DskipTests
+          cp target/assinador.jar "../../dist/assinador-${VERSION}.jar"
+
+      # ── Checksums ─────────────────────────────────────────────────────────
+      - name: Gerar SHA256SUMS
+        working-directory: dist
+        run: sha256sum * > SHA256SUMS
+
+      # ── Assinatura Cosign (keyless / OIDC) ────────────────────────────────
+      - name: Assinar artefatos com Cosign
+        working-directory: dist
+        env:
+          COSIGN_YES: "true"
+        run: |
+          for artifact in $(ls | grep -v '\.sig$' | grep -v '\.pem$'); do
+            cosign sign-blob \
+              --output-signature="${artifact}.sig" \
+              --output-certificate="${artifact}.pem" \
+              "${artifact}"
+          done
+
+      # ── GitHub Release ─────────────────────────────────────────────────────
+      - name: Publicar GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "v${{ steps.ver.outputs.VERSION }}"
+          generate_release_notes: true
+          files: dist/*

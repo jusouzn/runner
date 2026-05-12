@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+
+  # ── Java: testa o assinador.jar ────────────────────────────────────────────
+  test-java:
+    name: Testes Java (assinador.jar)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Executar testes
+        working-directory: projetos/assinador-java
+        run: mvn test
+
+  # ── Go: compila CLI para as 3 plataformas ─────────────────────────────────
+  build-go:
+    name: Build CLI assinatura (Go)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: projetos/assinatura-go/go.mod
+          cache-dependency-path: projetos/assinatura-go/go.sum
+
+      - name: Resolver dependências
+        working-directory: projetos/assinatura-go
+        run: go mod tidy
+
+      - name: Build linux/amd64
+        working-directory: projetos/assinatura-go
+        run: GOOS=linux GOARCH=amd64 go build -o assinatura-linux-amd64 .
+
+      - name: Build windows/amd64
+        working-directory: projetos/assinatura-go
+        run: GOOS=windows GOARCH=amd64 go build -o assinatura-windows-amd64.exe .
+
+      - name: Build darwin/amd64
+        working-directory: projetos/assinatura-go
+        run: GOOS=darwin GOARCH=amd64 go build -o assinatura-darwin-amd64 .
+
+      - name: Guardar artefatos de build
+        uses: actions/upload-artifact@v4
+        with:
+          name: assinatura-binaries-${{ github.sha }}
+          path: |
+            projetos/assinatura-go/assinatura-linux-amd64
+            projetos/assinatura-go/assinatura-windows-amd64.exe
+            projetos/assinatura-go/assinatura-darwin-amd64
+          retention-days: 7

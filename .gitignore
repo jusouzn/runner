@@ -1,0 +1,17 @@
+# Go
+projetos/assinatura-go/vendor/
+projetos/simulador-go/vendor/
+
+# Java / Maven
+projetos/assinador-java/target/
+projetos/simulador-java/target/
+
+# PlantUML jar (baixado localmente pelos scripts)
+plantuml.jar
+
+# Binários gerados (distribuídos via GitHub Releases)
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
