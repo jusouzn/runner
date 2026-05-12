@@ -2,7 +2,7 @@
 
 Este projeto utiliza o [Modelo C4](https://c4model.com/) para documentação da arquitetura. Os diagramas são escritos em código utilizando [PlantUML](https://plantuml.com/) e ficam armazenados na pasta `diagramas/`.
 
-## Níveis de Arquitetura
+## Níveis de Arquitetura .
 
 1. **Contexto (`contexto.puml`)**: Visão de alto nível que mostra o Sistema Runner e suas interações com o usuário, dispositivos criptográficos e a aplicação HubSaúde.
 2. **Contêineres (`conteineres.puml`)**: Visão detalhada da fronteira do sistema, evidenciando as aplicações CLI (`assinatura` e `simulador` construídas em Go) e o núcleo em Java (`assinador.jar`).
