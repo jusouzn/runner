@@ -22,4 +22,6 @@ func Execute() {
 
 func init() {
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
+	// Não exibe o help completo quando ocorre erro de execução (ex: flag inválida)
+	rootCmd.SilenceUsage = true
 }
