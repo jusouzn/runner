@@ -16,7 +16,7 @@ projetos/assinatura-go/assinatura.exe
 projetos/simulador-go/simulador
 projetos/simulador-go/simulador.exe
 
-# Claude Code (configurações locais do editor)
+# Configurações locais do editor
 .claude/
 
 # OS
