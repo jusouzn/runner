@@ -16,9 +16,6 @@ projetos/assinatura-go/assinatura.exe
 projetos/simulador-go/simulador
 projetos/simulador-go/simulador.exe
 
-# Configurações locais do editor
-.claude/
-
 # OS
 .DS_Store
 Thumbs.db
