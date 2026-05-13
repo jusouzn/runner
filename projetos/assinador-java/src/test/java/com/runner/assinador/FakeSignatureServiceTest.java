@@ -59,4 +59,46 @@ class FakeSignatureServiceTest {
         assertThrows(IllegalArgumentException.class,
                 () -> service.validate("conteudo", null, "1234"));
     }
+
+    @Test
+    void signComAlgoritmoInvalidoLancaExcecao() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.sign("conteudo", "MD5withRSA", "1234"));
+    }
+
+    @Test
+    void signComAlgoritmoInvalidoMencionaValor() {
+        var ex = assertThrows(IllegalArgumentException.class,
+                () -> service.sign("conteudo", "MD5withRSA", "1234"));
+        assertTrue(ex.getMessage().contains("MD5withRSA"),
+                "A mensagem deve conter o valor informado: " + ex.getMessage());
+    }
+
+    @Test
+    void signComConteudoMuitoLongoLancaExcecao() {
+        String conteudo = "a".repeat(10_001);
+        var ex = assertThrows(IllegalArgumentException.class,
+                () -> service.sign(conteudo, "SHA256withRSA", "1234"));
+        assertTrue(ex.getMessage().contains("--conteudo"));
+    }
+
+    @Test
+    void signComConteudoNoLimitePermitido() {
+        String conteudo = "a".repeat(10_000);
+        String resultado = service.sign(conteudo, "SHA256withRSA", "1234");
+        assertTrue(resultado.contains("\"status\": \"success\""));
+    }
+
+    @Test
+    void signComPinNaoNumericoLancaExcecao() {
+        var ex = assertThrows(IllegalArgumentException.class,
+                () -> service.sign("conteudo", "SHA256withRSA", "abc1"));
+        assertTrue(ex.getMessage().contains("--pin"));
+    }
+
+    @Test
+    void validateComPinNaoNumericoLancaExcecao() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.validate("conteudo", "assinatura-fake", "abc1"));
+    }
 }
