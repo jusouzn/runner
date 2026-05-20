@@ -26,8 +26,8 @@ jobs:
         working-directory: projetos/assinador-java
         run: ./mvnw test
 
-  # ── Go: compila CLI para as 3 plataformas ─────────────────────────────────
-  build-go:
+  # ── Go: compila e testa CLI assinatura ────────────────────────────────────
+  build-assinatura:
     name: Build CLI assinatura (Go)
     runs-on: ubuntu-latest
     steps:
@@ -42,6 +42,10 @@ jobs:
       - name: Resolver dependências
         working-directory: projetos/assinatura-go
         run: go mod tidy
+
+      - name: Verificar compilação (linux/amd64)
+        working-directory: projetos/assinatura-go
+        run: GOOS=linux GOARCH=amd64 go build -o /dev/null .
 
       - name: Build linux/amd64
         working-directory: projetos/assinatura-go
@@ -63,4 +67,43 @@ jobs:
             projetos/assinatura-go/assinatura-linux-amd64
             projetos/assinatura-go/assinatura-windows-amd64.exe
             projetos/assinatura-go/assinatura-darwin-amd64
+          retention-days: 7
+
+  # ── Go: compila CLI simulador ──────────────────────────────────────────────
+  build-simulador:
+    name: Build CLI simulador (Go)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: projetos/simulador-go/go.mod
+          cache-dependency-path: projetos/simulador-go/go.sum
+
+      - name: Resolver dependências
+        working-directory: projetos/simulador-go
+        run: go mod tidy
+
+      - name: Build linux/amd64
+        working-directory: projetos/simulador-go
+        run: GOOS=linux GOARCH=amd64 go build -o simulador-linux-amd64 .
+
+      - name: Build windows/amd64
+        working-directory: projetos/simulador-go
+        run: GOOS=windows GOARCH=amd64 go build -o simulador-windows-amd64.exe .
+
+      - name: Build darwin/amd64
+        working-directory: projetos/simulador-go
+        run: GOOS=darwin GOARCH=amd64 go build -o simulador-darwin-amd64 .
+
+      - name: Guardar artefatos de build
+        uses: actions/upload-artifact@v4
+        with:
+          name: simulador-binaries-${{ github.sha }}
+          path: |
+            projetos/simulador-go/simulador-linux-amd64
+            projetos/simulador-go/simulador-windows-amd64.exe
+            projetos/simulador-go/simulador-darwin-amd64
           retention-days: 7

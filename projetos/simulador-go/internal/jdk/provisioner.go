@@ -1,0 +1,169 @@
+package jdk
+
+import (
+	"archive/tar"
+	"archive/zip"
+	"compress/gzip"
+	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
+)
+
+// ProvisionFromURLs downloads and extracts the JRE from the given URL.
+// isZip controls whether it's a zip (Windows) or tar.gz (Linux/macOS).
+func ProvisionFromURLs(url string, isZip bool) error {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("não foi possível determinar o diretório home: %w", err)
+	}
+	destDir := filepath.Join(home, ".hubsaude", "jdk")
+
+	fmt.Fprintf(os.Stderr, "Baixando JRE de %s...\n", url)
+
+	tmp, err := os.CreateTemp("", "jre-*")
+	if err != nil {
+		return fmt.Errorf("erro ao criar arquivo temporário: %w", err)
+	}
+	defer os.Remove(tmp.Name())
+
+	resp, err := http.Get(url) //nolint:gosec
+	if err != nil {
+		return fmt.Errorf("erro ao baixar JRE: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("download falhou com status HTTP %d", resp.StatusCode)
+	}
+
+	if _, err := io.Copy(tmp, resp.Body); err != nil {
+		tmp.Close()
+		return fmt.Errorf("erro ao salvar arquivo: %w", err)
+	}
+	tmp.Close()
+
+	fmt.Fprintln(os.Stderr, "Extraindo JRE...")
+	os.RemoveAll(destDir)
+
+	if isZip {
+		return extractZip(tmp.Name(), destDir)
+	}
+	return extractTarGz(tmp.Name(), destDir)
+}
+
+func extractTarGz(src, dest string) error {
+	f, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	gz, err := gzip.NewReader(f)
+	if err != nil {
+		return err
+	}
+	defer gz.Close()
+
+	tr := tar.NewReader(gz)
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		parts := strings.SplitN(hdr.Name, "/", 2)
+		if len(parts) < 2 || parts[1] == "" {
+			continue
+		}
+
+		target, err := safeJoin(dest, parts[1])
+		if err != nil {
+			continue
+		}
+
+		switch hdr.Typeflag {
+		case tar.TypeDir:
+			os.MkdirAll(target, os.FileMode(hdr.Mode))
+		case tar.TypeReg:
+			os.MkdirAll(filepath.Dir(target), 0755)
+			out, err := os.OpenFile(target, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.FileMode(hdr.Mode))
+			if err != nil {
+				return err
+			}
+			_, copyErr := io.Copy(out, tr)
+			out.Close()
+			if copyErr != nil {
+				return copyErr
+			}
+		case tar.TypeSymlink:
+			os.Remove(target)
+			os.Symlink(hdr.Linkname, target) //nolint:errcheck
+		}
+	}
+	return nil
+}
+
+func extractZip(src, dest string) error {
+	r, err := zip.OpenReader(src)
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+
+	for _, f := range r.File {
+		parts := strings.SplitN(f.Name, "/", 2)
+		if len(parts) < 2 || parts[1] == "" {
+			continue
+		}
+
+		target, err := safeJoin(dest, parts[1])
+		if err != nil {
+			continue
+		}
+
+		if f.FileInfo().IsDir() {
+			os.MkdirAll(target, f.Mode())
+			continue
+		}
+
+		os.MkdirAll(filepath.Dir(target), 0755)
+		rc, err := f.Open()
+		if err != nil {
+			return err
+		}
+		out, err := os.OpenFile(target, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, f.Mode())
+		if err != nil {
+			rc.Close()
+			return err
+		}
+		_, copyErr := io.Copy(out, rc)
+		out.Close()
+		rc.Close()
+		if copyErr != nil {
+			return copyErr
+		}
+	}
+	return nil
+}
+
+func safeJoin(base, rel string) (string, error) {
+	target := filepath.Join(base, filepath.FromSlash(rel))
+	absBase, err := filepath.Abs(base)
+	if err != nil {
+		return "", err
+	}
+	absTarget, err := filepath.Abs(target)
+	if err != nil {
+		return "", err
+	}
+	if !strings.HasPrefix(absTarget, absBase+string(os.PathSeparator)) && absTarget != absBase {
+		return "", fmt.Errorf("path traversal detectado: %s", rel)
+	}
+	return target, nil
+}

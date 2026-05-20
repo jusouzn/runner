@@ -5,9 +5,8 @@ on:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
 
-# Permissões necessárias:
-#   contents: write  → criar GitHub Release e fazer upload de artefatos
-#   id-token: write  → Cosign keyless signing via OIDC do GitHub Actions
+# contents: write  → criar GitHub Release e fazer upload de artefatos
+# id-token: write  → Cosign keyless signing via OIDC do GitHub Actions
 permissions:
   contents: write
   id-token: write
@@ -42,8 +41,8 @@ jobs:
         id: ver
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
 
-      # ── Compilação ────────────────────────────────────────────────────────
-      - name: Resolver dependências Go
+      # ── Compilação — assinatura CLI ───────────────────────────────────────
+      - name: Resolver dependências Go (assinatura)
         working-directory: projetos/assinatura-go
         run: go mod tidy
 
@@ -58,8 +57,26 @@ jobs:
           GOOS=windows GOARCH=amd64 go build -ldflags="${LDFLAGS}" \
             -o "../../dist/assinatura-${VERSION}-windows-amd64.exe" .
           GOOS=darwin  GOARCH=amd64 go build -ldflags="${LDFLAGS}" \
-            -o "../../dist/assinatura-${VERSION}-darwin-amd64" .
+            -o "../../dist/assinatura-${VERSION}-macos-amd64" .
 
+      # ── Compilação — simulador CLI ────────────────────────────────────────
+      - name: Resolver dependências Go (simulador)
+        working-directory: projetos/simulador-go
+        run: go mod tidy
+
+      - name: Compilar CLI simulador (3 plataformas)
+        working-directory: projetos/simulador-go
+        run: |
+          VERSION="${{ steps.ver.outputs.VERSION }}"
+          LDFLAGS="-X github.com/jusouzn/simulador/cmd.Version=${VERSION}"
+          GOOS=linux   GOARCH=amd64 go build -ldflags="${LDFLAGS}" \
+            -o "../../dist/simulador-${VERSION}-linux-amd64" .
+          GOOS=windows GOARCH=amd64 go build -ldflags="${LDFLAGS}" \
+            -o "../../dist/simulador-${VERSION}-windows-amd64.exe" .
+          GOOS=darwin  GOARCH=amd64 go build -ldflags="${LDFLAGS}" \
+            -o "../../dist/simulador-${VERSION}-macos-amd64" .
+
+      # ── Compilação — assinador.jar ────────────────────────────────────────
       - name: Compilar assinador.jar
         working-directory: projetos/assinador-java
         run: |
