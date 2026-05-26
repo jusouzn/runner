@@ -17,6 +17,8 @@ public class ServidorHttp {
 
     private final int porta;
     private final SignatureService service;
+    private final CountDownLatch shutdownLatch = new CountDownLatch(1);
+    private volatile long ultimaAtividadeMs = System.currentTimeMillis();
 
     public ServidorHttp(int porta, SignatureService service) {
         this.porta = porta;
@@ -29,9 +31,11 @@ public class ServidorHttp {
         server.createContext("/health",   this::handleHealth);
         server.createContext("/sign",     this::handleSign);
         server.createContext("/validate", this::handleValidate);
+        server.createContext("/shutdown", this::handleShutdown);
         server.start();
         System.err.printf("{\"status\":\"running\",\"port\":%d}%n", porta);
-        new CountDownLatch(1).await();
+        shutdownLatch.await();
+        server.stop(2);
     }
 
     private void handleHealth(HttpExchange ex) throws IOException {
@@ -42,11 +46,37 @@ public class ServidorHttp {
         respond(ex, 200, "{\"status\":\"ok\"}");
     }
 
+    private void handleShutdown(HttpExchange ex) throws IOException {
+        if (!"POST".equalsIgnoreCase(ex.getRequestMethod())) {
+            respond(ex, 405, "{\"error\":\"Method Not Allowed\"}");
+            return;
+        }
+        int aposMinutos = parseApos(ex.getRequestURI().getQuery());
+        if (aposMinutos > 0) {
+            respond(ex, 200, String.format(
+                    "{\"status\":\"shutdown_scheduled\",\"apos_minutos\":%d}", aposMinutos));
+            final long janela = (long) aposMinutos * 60_000L;
+            Thread.ofVirtual().start(() -> {
+                while (!Thread.currentThread().isInterrupted()) {
+                    try { Thread.sleep(30_000); } catch (InterruptedException e) { break; }
+                    if (System.currentTimeMillis() - ultimaAtividadeMs >= janela) {
+                        shutdownLatch.countDown();
+                        break;
+                    }
+                }
+            });
+        } else {
+            respond(ex, 200, "{\"status\":\"shutdown\"}");
+            shutdownLatch.countDown();
+        }
+    }
+
     private void handleSign(HttpExchange ex) throws IOException {
         if (!"POST".equalsIgnoreCase(ex.getRequestMethod())) {
             respond(ex, 405, "{\"error\":\"Method Not Allowed\"}");
             return;
         }
+        ultimaAtividadeMs = System.currentTimeMillis();
         String body = readBody(ex);
         String conteudo  = extractField(body, "conteudo");
         String pin       = extractField(body, "pin");
@@ -63,6 +93,7 @@ public class ServidorHttp {
             respond(ex, 405, "{\"error\":\"Method Not Allowed\"}");
             return;
         }
+        ultimaAtividadeMs = System.currentTimeMillis();
         String body      = readBody(ex);
         String conteudo  = extractField(body, "conteudo");
         String pin       = extractField(body, "pin");
@@ -87,6 +118,12 @@ public class ServidorHttp {
         try (OutputStream os = ex.getResponseBody()) {
             os.write(bytes);
         }
+    }
+
+    private static int parseApos(String query) {
+        if (query == null) return 0;
+        Matcher m = Pattern.compile("apos=(\\d+)").matcher(query);
+        return m.find() ? Integer.parseInt(m.group(1)) : 0;
     }
 
     // Regex-based parser para JSON plano — evita dependências externas.
