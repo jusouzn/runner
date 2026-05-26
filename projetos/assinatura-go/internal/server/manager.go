@@ -32,6 +32,39 @@ func EnsureRunning(port int) error {
 	return startServer(port)
 }
 
+// StopOrSchedule encerra o servidor imediatamente (aposMinutos==0) ou agenda o
+// encerramento por inatividade via POST /shutdown?apos=N.
+// Tenta HTTP primeiro; cai em kill por PID apenas para encerramento imediato.
+func StopOrSchedule(port, aposMinutos int) error {
+	baseURL := fmt.Sprintf("http://localhost:%d", port)
+	shutdownURL := baseURL + "/shutdown"
+	if aposMinutos > 0 {
+		shutdownURL = fmt.Sprintf("%s?apos=%d", shutdownURL, aposMinutos)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, shutdownURL, nil)
+	if err == nil {
+		if resp, doErr := http.DefaultClient.Do(req); doErr == nil {
+			resp.Body.Close()
+			if resp.StatusCode == http.StatusOK {
+				if aposMinutos == 0 {
+					if sf, sfErr := stateFilePath(); sfErr == nil {
+						os.Remove(sf)
+					}
+				}
+				return nil
+			}
+		}
+	}
+
+	if aposMinutos > 0 {
+		return fmt.Errorf("servidor não está acessível via HTTP na porta %d; encerramento agendado não é possível", port)
+	}
+	return Stop(port)
+}
+
 // Stop sends SIGINT to the assinador server and removes the state file.
 func Stop(port int) error {
 	sf, err := stateFilePath()
