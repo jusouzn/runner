@@ -6,8 +6,18 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 )
+
+// Verbose, quando true, faz os invokers (HTTP/local) imprimirem em stderr
+// detalhes da chamada (URL alvo ou comando Java executado). O valor é
+// definido pelo pacote cmd a partir da flag global --verbose.
+var Verbose bool
+
+func logVerbose(format string, args ...interface{}) {
+	fmt.Fprintf(os.Stderr, "[verbose] "+format+"\n", args...)
+}
 
 // HTTP sends a request to a running assinador.jar server.
 // baseURL should be "http://localhost:<port>".
@@ -36,6 +46,10 @@ func HTTP(baseURL string, p Params) (string, error) {
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return "", err
+	}
+
+	if Verbose {
+		logVerbose("HTTP POST %s%s (operação=%s)", baseURL, endpoint, p.Operacao)
 	}
 
 	resp, err := http.Post(baseURL+endpoint, "application/json", bytes.NewReader(body)) //nolint:gosec

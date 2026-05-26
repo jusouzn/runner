@@ -32,6 +32,11 @@ func Local(p Params) (string, error) {
 	}
 
 	args := buildArgs(jarPath, p)
+
+	if Verbose {
+		logVerbose("executando: %s %s", javaPath, strings.Join(args, " "))
+	}
+
 	cmd := exec.Command(javaPath, args...)
 
 	var stdout, stderr bytes.Buffer
