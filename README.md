@@ -1,4 +1,4 @@
-# Runner — Trabalho Prático
+# Runner 
 
 Repositório do **trabalho prático da disciplina de Implementação e Integração de Software**: desenvolvimento do **Sistema Runner** ao longo das aulas, em grupo de **até 2 integrantes**.
 
