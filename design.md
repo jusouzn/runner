@@ -4,33 +4,18 @@
 - Diagramas empregam o PlantUML. Consulte [PlantUML](https://plantuml.com/) para detalhes.
 - Scripts (`geraimagens.sh` e `geraimagens.bat`) automatizam a geração de diagramas a partir dos arquivos `.puml`.
 
-## 1. Diagrama de Contexto
+> Os níveis C4 de Contexto e Contêineres (níveis 1 e 2) são mantidos no repositório **upstream** e referenciados por commit fixo para evitar deriva:
+> https://github.com/kyriosdata/runner/blob/4d7d40fff32b3b50372e7fbe41fe713b2bbddb4c/design.md
+>
+> Este documento registra apenas decisões e detalhes específicos desta implementação.
 
-![Diagrama de Contexto](diagramas/imagens/contexto.svg)
+## 1. Referência de contexto/contêineres (upstream)
 
-**Atores e Sistemas Externos:**
+- Design oficial de contexto e contêineres (commit fixo): https://github.com/kyriosdata/runner/blob/4d7d40fff32b3b50372e7fbe41fe713b2bbddb4c/design.md
 
-| Elemento | Tipo | Descrição |
-|----------|------|-----------|
-| Usuário | Ator | Pessoa que interage com o sistema via linha de comandos |
-| Dispositivo de Assinatura Digital | Sistema Externo | Hardware criptográfico (token USB, smart card) que armazena certificados e executa operações de assinatura |
-| Simulador do HubSaúde | Sistema Externo | Aplicação Web gerida pelo CLI e que responde a requisições de terceiros |
+Os diagramas C4 gerados localmente em `diagramas/` podem permanecer para apoio desta implementação.
 
-## 2. Diagrama de Contêineres
-
-![Diagrama de Contêineres](diagramas/imagens/conteineres.svg)
-
-**Comunicação entre contêineres:**
-
-| Origem | Destino | Protocolo | Descrição |
-|--------|---------|-----------|-----------|
-| Usuário | assinatura | CLI | Comandos de assinatura (criar, validar) digitados no terminal |
-| Usuário | simulador | CLI | Comandos de gerenciamento do simulador |
-| assinatura | assinador.jar | CLI / HTTP | Invocação direta ou requisição HTTP (conforme modo de execução) |
-| assinador.jar | Dispositivo Criptográfico | PKCS#11 | Interface padrão para comunicação com tokens e smart cards |
-| simulador | Simulador do HubSaúde | HTTP | Invoca e monitora o ciclo de vida do simulador |
-
-## 3. Decisões Tecnológicas
+## 2. Decisões Tecnológicas
 
 | Componente | Tecnologia | Justificativa |
 |------------|------------|---------------|
@@ -39,9 +24,9 @@
 | `assinador.jar` | Java 21 | Restrição de projeto; necessário para PKCS#11 via SunPKCS11 |
 | Estado local | Arquivo JSON em `~/.hubsaude/` | Simples, sem dependências extras |
 
-## 4. Dinâmica de Fluxos
+## 3. Dinâmica de Fluxos
 
-### 4.1. Invocação Direta (Modo Local / Cold Start)
+### 3.1. Invocação Direta (Modo Local / Cold Start)
 
 Ideal para execuções esporádicas ou scripts de automação.
 
@@ -53,7 +38,7 @@ Ideal para execuções esporádicas ou scripts de automação.
 5. CLI captura stdout, formata e apresenta ao usuário
 ```
 
-### 4.2. Invocação via Servidor (Modo HTTP / Warm Start)
+### 3.2. Invocação via Servidor (Modo HTTP / Warm Start)
 
 Ideal para múltiplas requisições sequenciais (menor latência).
 
@@ -66,7 +51,7 @@ Ideal para múltiplas requisições sequenciais (menor latência).
 5. CLI recebe JSON, formata e apresenta ao usuário
 ```
 
-## 5. Contrato de Comunicação
+## 4. Contrato de Comunicação
 
 Todo retorno do `assinador.jar` (stdout ou HTTP) segue o esquema JSON abaixo.
 
@@ -94,7 +79,7 @@ Todo retorno do `assinador.jar` (stdout ou HTTP) segue o esquema JSON abaixo.
 }
 ```
 
-## 6. Análise de Riscos
+## 5. Análise de Riscos
 
 | Risco Técnico | Impacto | Estratégia de Mitigação |
 |---------------|---------|-------------------------|
@@ -103,7 +88,7 @@ Todo retorno do `assinador.jar` (stdout ou HTTP) segue o esquema JSON abaixo.
 | Assinatura de artefatos com Cosign/Sigstore | Médio (pode travar entrega contínua) | Step isolado e automatizado no GitHub Actions com identidade OIDC |
 | Cross-compiling multiplataforma | Baixo | Go oferece cross-compiling nativo |
 
-## 7. Como gerar os diagramas
+## 6. Como gerar os diagramas
 
 Os arquivos-fonte dos diagramas ficam em `diagramas/` e as imagens geradas em `diagramas/imagens/`.
 
