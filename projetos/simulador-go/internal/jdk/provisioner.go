@@ -9,10 +9,12 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
-// ProvisionFromURLs downloads and extracts the JRE from the given URL.
+// ProvisionFromURLs downloads and extracts the JRE from the given URL into ~/.hubsaude/jdk.
+// If a valid JRE >= MinJavaVersion is already provisioned there, it skips the download.
 // isZip controls whether it's a zip (Windows) or tar.gz (Linux/macOS).
 func ProvisionFromURLs(url string, isZip bool) error {
 	home, err := os.UserHomeDir()
@@ -20,6 +22,12 @@ func ProvisionFromURLs(url string, isZip bool) error {
 		return fmt.Errorf("não foi possível determinar o diretório home: %w", err)
 	}
 	destDir := filepath.Join(home, ".hubsaude", "jdk")
+
+	// Cache check: skip download if already provisioned and valid.
+	if isCachedJDKValid(destDir) {
+		fmt.Fprintln(os.Stderr, "JRE já provisionado em ~/.hubsaude/jdk — nenhum download necessário.")
+		return nil
+	}
 
 	fmt.Fprintf(os.Stderr, "Baixando JRE de %s...\n", url)
 
@@ -52,6 +60,20 @@ func ProvisionFromURLs(url string, isZip bool) error {
 		return extractZip(tmp.Name(), destDir)
 	}
 	return extractTarGz(tmp.Name(), destDir)
+}
+
+// isCachedJDKValid returns true if ~/.hubsaude/jdk/bin/java exists and reports version >= MinJavaVersion.
+func isCachedJDKValid(destDir string) bool {
+	bin := "java"
+	if runtime.GOOS == "windows" {
+		bin = "java.exe"
+	}
+	javaBin := filepath.Join(destDir, "bin", bin)
+	if !isFile(javaBin) {
+		return false
+	}
+	v, err := javaVersion(javaBin)
+	return err == nil && v >= MinJavaVersion
 }
 
 func extractTarGz(src, dest string) error {

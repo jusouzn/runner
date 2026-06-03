@@ -22,11 +22,12 @@ func init() {
 
 func runSetup(_ *cobra.Command, _ []string) error {
 	if path, err := jdk.FindJava(); err == nil {
-		fmt.Printf("Java já disponível: %s\n", path)
+		v, _ := jdk.ParseJavaVersion(path)
+		fmt.Printf("Java já disponível (versão %d): %s\n", v, path)
 		return nil
 	}
 
-	fmt.Println("Java não encontrado. Iniciando provisionamento automático...")
+	fmt.Println("Java não encontrado ou incompatível. Iniciando provisionamento automático...")
 	if err := jdk.Provision(); err != nil {
 		return fmt.Errorf("falha no provisionamento: %w", err)
 	}
@@ -35,6 +36,7 @@ func runSetup(_ *cobra.Command, _ []string) error {
 	if err != nil {
 		return fmt.Errorf("JRE instalado mas não encontrado — verifique ~/.hubsaude/jdk/bin/java")
 	}
-	fmt.Printf("JRE instalado com sucesso: %s\n", path)
+	v, _ := jdk.ParseJavaVersion(path)
+	fmt.Printf("JRE instalado com sucesso (versão %d): %s\n", v, path)
 	return nil
 }
