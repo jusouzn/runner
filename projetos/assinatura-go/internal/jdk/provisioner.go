@@ -14,12 +14,19 @@ import (
 )
 
 // Provision downloads and extracts JRE 21 (Eclipse Temurin) to ~/.hubsaude/jdk.
+// If a valid JRE >= 21 is already provisioned there, it skips the download.
 func Provision() error {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return fmt.Errorf("não foi possível determinar o diretório home: %w", err)
 	}
 	destDir := filepath.Join(home, ".hubsaude", "jdk")
+
+	// Cache check: skip download if already provisioned and valid.
+	if isCachedJDKValid(destDir) {
+		fmt.Fprintln(os.Stderr, "JRE 21 já provisionado em ~/.hubsaude/jdk — nenhum download necessário.")
+		return nil
+	}
 
 	url, isZip := jreURL()
 	fmt.Fprintf(os.Stderr, "Baixando JRE 21 (Eclipse Temurin)...\n")
@@ -53,6 +60,20 @@ func Provision() error {
 		return extractZip(tmp.Name(), destDir)
 	}
 	return extractTarGz(tmp.Name(), destDir)
+}
+
+// isCachedJDKValid returns true if ~/.hubsaude/jdk/bin/java exists and reports version >= MinJavaVersion.
+func isCachedJDKValid(destDir string) bool {
+	bin := "java"
+	if runtime.GOOS == "windows" {
+		bin = "java.exe"
+	}
+	javaBin := filepath.Join(destDir, "bin", bin)
+	if !isFile(javaBin) {
+		return false
+	}
+	v, err := javaVersion(javaBin)
+	return err == nil && v >= MinJavaVersion
 }
 
 func jreURL() (url string, isZip bool) {
