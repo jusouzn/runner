@@ -11,8 +11,8 @@ Repositório do **trabalho prático da disciplina de Implementação e Integraç
 
 | Documento | Descrição |
 |-----------|-----------|
-| [especificacao.md](especificacao.md) | Especificação completa: escopo, requisitos (US-01 a US-05), entregáveis |
-| [design.md](design.md) | Arquitetura C4, fluxos, contrato de comunicação, riscos |
+| [especificacao.md](especificacao.md) | Ponteiro para a especificação oficial no upstream, fixada por commit |
+| [design.md](design.md) | Decisões e detalhes específicos desta implementação |
 | [BACKLOG.md](BACKLOG.md) | Backlog por história de usuário com tarefas priorizadas |
 | [PLANO_ACAO.md](PLANO_ACAO.md) | Plano de ação da equipe com marcos e cronograma |
 
@@ -28,9 +28,9 @@ Facilitar o uso (via CLI) de aplicações Java do ecossistema da disciplina, sem
 
 ## Especificação oficial
 
-A especificação original do trabalho está em:
+A especificação original do trabalho é mantida no upstream e não é duplicada neste repositório. A referência abaixo é fixada por commit para garantir rastreabilidade e evitar deriva (não usar `main`):
 
-- <https://github.com/kyriosdata/runner/tree/main>
+- <https://github.com/kyriosdata/runner/blob/4d7d40fff32b3b50372e7fbe41fe713b2bbddb4c/especificacao.md>
 
 ## Como gerar os diagramas C4
 
