@@ -128,7 +128,7 @@ Primeiro verifique a assinatura do próprio manifesto de checksums:
 cosign verify-blob \
   --certificate      "SHA256SUMS.pem" \
   --signature        "SHA256SUMS.sig" \
-  --certificate-identity-regexp "^https://github.com/jusouzn/runner/.github/workflows/release.yml@refs/tags/v.*$" \
+  --certificate-identity-regexp "^https://github.com/<OWNER>/<REPO>/.github/workflows/release.yml@refs/tags/v.*$" \
   --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
   "SHA256SUMS"
 ```
