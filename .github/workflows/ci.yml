@@ -6,12 +6,105 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
 
-  # ── Java: testa o assinador.jar ────────────────────────────────────────────
-  test-java:
-    name: Testes Java (assinador.jar)
+  # ── Lint Go (golangci-lint) ────────────────────────────────────────────────
+  lint-go:
+    name: Lint Go (${{ matrix.module }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [assinatura-go, simulador-go]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: projetos/${{ matrix.module }}/go.mod
+          cache-dependency-path: projetos/${{ matrix.module }}/go.sum
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.5.0
+          working-directory: projetos/${{ matrix.module }}
+
+  # ── Go: testes (Windows + Linux) com cobertura ─────────────────────────────
+  test-go:
+    name: Testes Go ${{ matrix.module }} (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        module: [assinatura-go, simulador-go]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: projetos/${{ matrix.module }}/go.mod
+          cache-dependency-path: projetos/${{ matrix.module }}/go.sum
+
+      - name: Testes com cobertura
+        working-directory: projetos/${{ matrix.module }}
+        run: go test -covermode=atomic -coverprofile=coverage.out ./...
+
+      - name: Resumo de cobertura
+        working-directory: projetos/${{ matrix.module }}
+        shell: bash
+        run: |
+          echo "### Cobertura ${{ matrix.module }} (${{ matrix.os }})" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          go tool cover -func=coverage.out | tail -n 1 >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publicar perfil de cobertura
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.module }}-${{ matrix.os }}
+          path: projetos/${{ matrix.module }}/coverage.out
+          retention-days: 7
+
+  # ── Go: verificação de build cross-platform ────────────────────────────────
+  build-go:
+    name: Build cross-platform (${{ matrix.module }})
+    runs-on: ubuntu-latest
+    needs: [lint-go, test-go]
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [assinatura-go, simulador-go]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: projetos/${{ matrix.module }}/go.mod
+          cache-dependency-path: projetos/${{ matrix.module }}/go.sum
+
+      - name: Compilar para linux, windows e darwin
+        working-directory: projetos/${{ matrix.module }}
+        run: |
+          GOOS=linux   GOARCH=amd64 go build -o /dev/null .
+          GOOS=windows GOARCH=amd64 go build -o /dev/null .
+          GOOS=darwin  GOARCH=amd64 go build -o /dev/null .
+
+  # ── Java: testes (Windows + Linux) com cobertura JaCoCo ────────────────────
+  test-java:
+    name: Testes Java (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
 
@@ -22,96 +115,15 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Executar testes
+      - name: Executar testes (com cobertura JaCoCo)
         working-directory: projetos/assinador-java
-        run: ./mvnw test
+        shell: bash
+        run: ./mvnw -B test
 
-  # ── Go: compila e testa CLI assinatura ────────────────────────────────────
-  build-assinatura:
-    name: Build CLI assinatura (Go)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Configurar Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: projetos/assinatura-go/go.mod
-          cache-dependency-path: projetos/assinatura-go/go.sum
-
-      - name: Resolver dependências
-        working-directory: projetos/assinatura-go
-        run: go mod tidy
-
-      - name: Executar testes
-        working-directory: projetos/assinatura-go
-        run: go test ./...
-
-      - name: Verificar compilação (linux/amd64)
-        working-directory: projetos/assinatura-go
-        run: GOOS=linux GOARCH=amd64 go build -o /dev/null .
-
-      - name: Build linux/amd64
-        working-directory: projetos/assinatura-go
-        run: GOOS=linux GOARCH=amd64 go build -o assinatura-linux-amd64 .
-
-      - name: Build windows/amd64
-        working-directory: projetos/assinatura-go
-        run: GOOS=windows GOARCH=amd64 go build -o assinatura-windows-amd64.exe .
-
-      - name: Build darwin/amd64
-        working-directory: projetos/assinatura-go
-        run: GOOS=darwin GOARCH=amd64 go build -o assinatura-darwin-amd64 .
-
-      - name: Guardar artefatos de build
+      - name: Publicar relatório de cobertura JaCoCo
+        if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: assinatura-binaries-${{ github.sha }}
-          path: |
-            projetos/assinatura-go/assinatura-linux-amd64
-            projetos/assinatura-go/assinatura-windows-amd64.exe
-            projetos/assinatura-go/assinatura-darwin-amd64
-          retention-days: 7
-
-  # ── Go: compila CLI simulador ──────────────────────────────────────────────
-  build-simulador:
-    name: Build CLI simulador (Go)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Configurar Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: projetos/simulador-go/go.mod
-          cache-dependency-path: projetos/simulador-go/go.sum
-
-      - name: Resolver dependências
-        working-directory: projetos/simulador-go
-        run: go mod tidy
-
-      - name: Executar testes
-        working-directory: projetos/simulador-go
-        run: go test ./...
-
-      - name: Build linux/amd64
-        working-directory: projetos/simulador-go
-        run: GOOS=linux GOARCH=amd64 go build -o simulador-linux-amd64 .
-
-      - name: Build windows/amd64
-        working-directory: projetos/simulador-go
-        run: GOOS=windows GOARCH=amd64 go build -o simulador-windows-amd64.exe .
-
-      - name: Build darwin/amd64
-        working-directory: projetos/simulador-go
-        run: GOOS=darwin GOARCH=amd64 go build -o simulador-darwin-amd64 .
-
-      - name: Guardar artefatos de build
-        uses: actions/upload-artifact@v4
-        with:
-          name: simulador-binaries-${{ github.sha }}
-          path: |
-            projetos/simulador-go/simulador-linux-amd64
-            projetos/simulador-go/simulador-windows-amd64.exe
-            projetos/simulador-go/simulador-darwin-amd64
+          name: jacoco-report
+          path: projetos/assinador-java/target/site/jacoco
           retention-days: 7
