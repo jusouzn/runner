@@ -4,7 +4,7 @@ Repositório do **trabalho prático da disciplina de Implementação e Integraç
 
 ## Equipe
 
-- Veronica Ribeiro Oliveira Palmeira
+- Verônica Ribeiro Oliveira Palmeira
 - Júlia de Souza Nascimento
 
 ## Documentação do projeto
