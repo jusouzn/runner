@@ -104,7 +104,7 @@ ARTIFACT="assinatura-1.0.0-linux-amd64"
 cosign verify-blob \
   --certificate      "${ARTIFACT}.pem" \
   --signature        "${ARTIFACT}.sig" \
-  --certificate-identity-regexp "^https://github.com/jusouzn/runner/.github/workflows/release.yml@refs/tags/v.*$" \
+  --certificate-identity-regexp "^https://github.com/<OWNER>/<REPO>/.github/workflows/release.yml@refs/tags/v.*$" \
   --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
   "${ARTIFACT}"
 ```
