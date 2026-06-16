@@ -18,8 +18,9 @@ uma tag de versão.
 
 O projeto adota [Semantic Versioning 2.0.0](https://semver.org/lang/pt-BR/). Toda versão
 tem o formato `MAJOR.MINOR.PATCH`, e a **tag git** recebe o prefixo `v`
-(ex.: `v1.4.2`). O workflow de release só dispara para tags que casem com o padrão
-`v[0-9]+.[0-9]+.[0-9]+`.
+(ex.: `v1.4.2`). Observação: em [release.yml](.github/workflows/release.yml) o filtro
+`on.push.tags` é um **glob** (não regex) e, do jeito que está hoje, só cobre versões estáveis
+com **um dígito por parte** (ex.: `v1.2.3`). Para suportar `v10.0.0`, ajuste o padrão no workflow.
 
 Incremente:
 
