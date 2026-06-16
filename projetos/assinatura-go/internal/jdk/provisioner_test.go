@@ -41,6 +41,7 @@ func TestSafeJoin_RejeitaPathTraversal(t *testing.T) {
 
 	maliciosos := []string{
 		"../escapou.txt",
+		"..\\escapou.txt",
 		"../../etc/passwd",
 		"sub/../../fora.txt",
 	}
