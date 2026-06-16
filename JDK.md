@@ -19,8 +19,7 @@ Runner resolve o Java na seguinte ordem:
 1. **JRE gerenciado** — `~/.hubsaude/jdk/bin/java`, provisionado pelo próprio Runner.
 2. **Java do sistema** — primeiro `java` encontrado no `PATH`, desde que a versão
    seja `>= 21`.
-3. **Provisionamento automático** — se nada compatível for encontrado, o Runner
-   baixa o **Eclipse Temurin JRE 21** para a plataforma atual.
+3. **Provisionamento sob demanda** — se nada compatível for encontrado, o Runner orienta a executar `assinatura setup`, que baixa o **Eclipse Temurin JRE 21** para a plataforma atual.
 
 Se um `java` for encontrado no `PATH` mas com versão incompatível (< 21), o Runner
 **não** o utiliza e orienta o usuário a executar `assinatura setup`.
