@@ -1,4 +1,4 @@
-# Provisionamento Automático de JDK (US‑04)
+# Provisionamento Automático de JRE (US‑04)
 
 Este documento descreve como o Sistema Runner detecta, baixa e configura
 automaticamente um Java Runtime Environment (JRE) 21, de modo que o usuário
