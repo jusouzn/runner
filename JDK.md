@@ -60,8 +60,8 @@ Extraindo JRE...
 JRE instalado com sucesso (versão 21): /home/usuario/.hubsaude/jdk/bin/java
 ```
 
-O provisionamento também é acionado de forma transparente pelos comandos que
-precisam de Java (`sign`, `validate`) quando nenhum Java compatível é encontrado.
+O provisionamento é acionado explicitamente pelo comando `assinatura setup`.
+Quando nenhum Java compatível é encontrado, comandos como `sign` e `validate` falham com uma mensagem orientando a executar o setup.
 
 ---
 
