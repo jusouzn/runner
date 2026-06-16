@@ -25,7 +25,7 @@ O Runner facilita o uso, via linha de comando, de aplicações Java do ecossiste
 | Releases assinadas com Cosign + checksums SHA256 | Pipeline pronto, primeira tag pendente |
 | PKCS#11 real | Pendente — escopo do marco final |
 
-A versão estável é a `main`. Releases serão publicadas em [GitHub Releases](https://github.com/jusouzn/runner/releases) sob versionamento [SemVer](https://semver.org/lang/pt-BR/).
+A versão estável é a `main`. Releases serão publicadas em [GitHub Releases](../../releases) sob versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## Documentação do projeto
 
