@@ -40,7 +40,7 @@ Regras adicionais:
   > (`vX.Y.Z`). Para publicar pré-lançamentos automaticamente, amplie o padrão de tags
   > em [release.yml](.github/workflows/release.yml).
 - A versão é injetada no binário em tempo de build via `-ldflags` (variável
-  `cmd.Version`), permitindo `assinatura --version` / `simulador --version` reportarem a
+  `cmd.Version`), permitindo `assinatura version` / `simulador version` reportarem a
   versão correta.
 
 ## 2. Criação de uma release (tags)
