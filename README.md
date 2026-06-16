@@ -21,7 +21,7 @@ O Runner facilita o uso, via linha de comando, de aplicações Java do ecossiste
 | `assinador.jar` (validação + simulação + servidor HTTP) | Implementado |
 | `simulador` CLI (start/stop/status, download via Releases) | Implementado |
 | Provisionamento automático de JDK | Implementado (Linux/macOS/Windows amd64) |
-| Build multiplataforma (CI) | Linux validado em CI; Windows pendente |
+| Build multiplataforma (CI) | Cross-compile em CI (Ubuntu) para Linux/Windows/macOS amd64; execução nativa no Windows pendente |
 | Releases assinadas com Cosign + checksums SHA256 | Pipeline pronto, primeira tag pendente |
 | PKCS#11 real | Pendente — escopo do marco final |
 
