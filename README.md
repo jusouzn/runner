@@ -38,6 +38,8 @@ A versão estável é a `main`. Releases serão publicadas em [GitHub Releases](
 | [JDK.md](JDK.md) | Provisionamento automático do JDK |
 | [BACKLOG.md](BACKLOG.md) | Backlog por história de usuário |
 | [PLANO_ACAO.md](PLANO_ACAO.md) | Plano de ação com marcos e cronograma |
+| [RELEASE.md](RELEASE.md) | Processo de release: tags, SemVer e verificação com Cosign |
+| [docs/adr/](docs/adr/) | Architecture Decision Records (decisões técnicas registradas) |
 
 A especificação oficial é mantida no upstream e referenciada por commit fixo (não `main`):
 
