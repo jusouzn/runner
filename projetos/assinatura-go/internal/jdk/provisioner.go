@@ -197,6 +197,9 @@ func extractZip(src, dest string) error {
 
 // safeJoin joins base and rel and verifies the result stays inside base (zip-slip guard).
 func safeJoin(base, rel string) (string, error) {
+	// Normalize backslashes (Windows-style zip entries) to forward slashes before
+	// converting to the OS path separator, so that "..\\" traversals are blocked on Linux too.
+	rel = strings.ReplaceAll(rel, "\\", "/")
 	target := filepath.Join(base, filepath.FromSlash(rel))
 	absBase, err := filepath.Abs(base)
 	if err != nil {
