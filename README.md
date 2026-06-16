@@ -180,7 +180,7 @@ Este é um trabalho acadêmico em equipe de duas pessoas; ainda assim, o reposit
 2. Abra uma branch a partir de `main` com prefixo `feat/`, `fix/`, `chore/`, `docs/` ou `ci/`
 3. Use [Conventional Commits](https://www.conventionalcommits.org/pt-br/v1.0.0/) nas mensagens (ex.: `feat(assinatura): suportar timeout configurável`)
 4. Abra um PR pequeno e atômico, ligado à issue (`Closes #N`), descrevendo o que foi feito e como validar
-5. CI deve passar (lint + testes + build) antes do merge
+5. CI deve passar (testes + build) antes do merge
 
 ## Licença
 
