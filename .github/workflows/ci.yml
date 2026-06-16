@@ -43,6 +43,10 @@ jobs:
         working-directory: projetos/assinatura-go
         run: go mod tidy
 
+      - name: Executar testes
+        working-directory: projetos/assinatura-go
+        run: go test ./...
+
       - name: Verificar compilação (linux/amd64)
         working-directory: projetos/assinatura-go
         run: GOOS=linux GOARCH=amd64 go build -o /dev/null .
@@ -85,6 +89,10 @@ jobs:
       - name: Resolver dependências
         working-directory: projetos/simulador-go
         run: go mod tidy
+
+      - name: Executar testes
+        working-directory: projetos/simulador-go
+        run: go test ./...
 
       - name: Build linux/amd64
         working-directory: projetos/simulador-go
