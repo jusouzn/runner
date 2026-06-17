@@ -123,20 +123,36 @@ func startServer(port int) error {
 		saveState(sf, state{PID: cmd.Process.Pid, Port: port}) //nolint:errcheck
 	}
 
+	// Observa o término do processo para falhar rápido (e com mensagem clara)
+	// quando o JAR não consegue subir — tipicamente porta já ocupada — em vez
+	// de esperar o timeout inteiro de readiness.
+	exited := make(chan struct{})
+	go func() {
+		cmd.Wait() //nolint:errcheck
+		close(exited)
+	}()
+
 	baseURL := fmt.Sprintf("http://localhost:%d", port)
-	if err := waitReady(baseURL, 20*time.Second); err != nil {
-		return fmt.Errorf("assinador.jar iniciado (PID %d) mas não respondeu: %w", cmd.Process.Pid, err)
+	if err := waitReady(baseURL, exited, 20*time.Second); err != nil {
+		return fmt.Errorf("assinador.jar (PID %d) não ficou pronto na porta %d: %w", cmd.Process.Pid, port, err)
 	}
 	return nil
 }
 
-func waitReady(baseURL string, timeout time.Duration) error {
+// waitReady aguarda o servidor responder ao health check. Retorna erro
+// imediatamente se o processo terminar antes (porta ocupada, JVM falhou etc.).
+func waitReady(baseURL string, exited <-chan struct{}, timeout time.Duration) error {
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
 		if isAlive(baseURL) {
 			return nil
 		}
-		time.Sleep(300 * time.Millisecond)
+		select {
+		case <-exited:
+			return fmt.Errorf("o processo encerrou antes de ficar pronto (porta %s pode estar ocupada)",
+				baseURL[len("http://localhost:"):])
+		case <-time.After(300 * time.Millisecond):
+		}
 	}
 	return fmt.Errorf("servidor não respondeu em %s", timeout)
 }

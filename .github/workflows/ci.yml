@@ -128,3 +128,39 @@ jobs:
           name: jacoco-report
           path: projetos/assinador-java/target/site/jacoco
           retention-days: 7
+
+  # ── Testes de contrato CLI ↔ assinador.jar (subprocess + HTTP reais) ───────
+  contract-tests:
+    name: Contrato CLI↔JAR (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Configurar Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: projetos/assinatura-go/go.mod
+          cache-dependency-path: projetos/assinatura-go/go.sum
+
+      - name: Empacotar assinador.jar
+        working-directory: projetos/assinador-java
+        shell: bash
+        run: ./mvnw -B -q package -DskipTests
+
+      - name: Executar testes de contrato
+        working-directory: projetos/assinatura-go
+        shell: bash
+        env:
+          ASSINADOR_JAR: ${{ github.workspace }}/projetos/assinador-java/target/assinador.jar
+        run: go test -tags=contract -run Contrato ./internal/invoker/
