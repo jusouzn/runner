@@ -24,6 +24,7 @@ contexto, a decisão tomada e suas consequências em um determinado momento do p
 | [0001](0001-porta-padrao-assinador.md) | Porta padrão 8080 do servidor do assinador | Aceito |
 | [0002](0002-descoberta-de-instancia.md) | Descoberta de instância via arquivo de estado em `~/.hubsaude/` | Aceito |
 | [0003](0003-cli-em-go.md) | CLIs implementados em Go | Aceito |
+| [0004](0004-pkcs11-com-softhsm2.md) | Integração PKCS#11 via SunPKCS11 e SoftHSM2 nos testes | Aceito |
 
 ## Template
 
