@@ -39,9 +39,13 @@ Regras adicionais:
   > Nota: o gatilho atual do workflow cobre apenas versões estáveis
   > (`vX.Y.Z`). Para publicar pré-lançamentos automaticamente, amplie o padrão de tags
   > em [release.yml](.github/workflows/release.yml).
-- A versão é injetada no binário em tempo de build via `-ldflags` (variável
-  `cmd.Version`), permitindo `assinatura version` / `simulador version` reportarem a
-  versão correta.
+- A versão é injetada no binário em tempo de build via `-ldflags` (variáveis
+  `cmd.Version`, `cmd.Commit` e `cmd.Date`), permitindo `assinatura version` /
+  `simulador version` reportarem **tag + commit curto** (ex.: `assinatura v1.0.0 (abc1234, 2026-06-17)`).
+- A versão corrente é declarada em [`release.json`](release.json) (fonte única). O
+  workflow de release **verifica** que a tag publicada coincide com `release.json` e
+  falha caso divirjam. Atualize `release.json` e o [CHANGELOG.md](CHANGELOG.md) **antes**
+  de criar a tag.
 
 ## 2. Criação de uma release (tags)
 
@@ -52,10 +56,13 @@ Pré-requisitos: a `main` deve estar verde (CI passando) e conter tudo o que ent
 git checkout main
 git pull origin main
 
-# 2. Crie uma tag anotada seguindo SemVer (prefixo "v")
+# 2. Atualize release.json (campo "version") e o CHANGELOG.md, e faça o commit
+#    Ex.: "version": "1.0.0"  → a tag abaixo precisa coincidir, ou o release falha.
+
+# 3. Crie uma tag anotada seguindo SemVer (prefixo "v")
 git tag -a v1.0.0 -m "Release v1.0.0"
 
-# 3. Publique a tag — isso dispara o workflow de release
+# 4. Publique a tag — isso dispara o workflow de release
 git push origin v1.0.0
 ```
 

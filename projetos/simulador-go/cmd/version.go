@@ -6,14 +6,35 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Version é injetada via ldflags durante o build de release: -X github.com/jusouzn/simulador/cmd.Version=X.Y.Z
-var Version = "0.1.0"
+// Variáveis injetadas via ldflags no build de release, ex.:
+//
+//	-X github.com/jusouzn/simulador/cmd.Version=1.2.3
+//	-X github.com/jusouzn/simulador/cmd.Commit=abc1234
+//	-X github.com/jusouzn/simulador/cmd.Date=2026-06-17
+var (
+	Version = "0.1.0-dev"
+	Commit  = ""
+	Date    = ""
+)
+
+// versionString monta uma linha de versão rastreável: tag + SHA curto (+ data).
+func versionString() string {
+	s := "simulador v" + Version
+	if Commit != "" {
+		s += " (" + Commit
+		if Date != "" {
+			s += ", " + Date
+		}
+		s += ")"
+	}
+	return s
+}
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Exibe a versão do CLI",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("simulador v%s\n", Version)
+	Short: "Exibe a versão do CLI (tag + commit)",
+	Run: func(_ *cobra.Command, _ []string) {
+		fmt.Println(versionString())
 	},
 }
 

@@ -1,0 +1,9 @@
+{
+  "schema": "runner.release/v1",
+  "version": "0.1.0",
+  "components": {
+    "assinatura": "projetos/assinatura-go",
+    "simulador": "projetos/simulador-go",
+    "assinador": "projetos/assinador-java"
+  }
+}
