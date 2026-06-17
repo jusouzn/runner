@@ -15,6 +15,9 @@ import java.util.regex.Pattern;
 
 public class ServidorHttp {
 
+    // Intervalo entre verificações de inatividade do monitor de auto-shutdown.
+    private static final long INTERVALO_POLL_MS = 30_000L;
+
     private final int porta;
     private final SignatureService service;
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
@@ -55,16 +58,14 @@ public class ServidorHttp {
         if (aposMinutos > 0) {
             respond(ex, 200, String.format(
                     "{\"status\":\"shutdown_scheduled\",\"apos_minutos\":%d}", aposMinutos));
-            final long janela = (long) aposMinutos * 60_000L;
-            Thread.ofVirtual().start(() -> {
-                while (!Thread.currentThread().isInterrupted()) {
-                    try { Thread.sleep(30_000); } catch (InterruptedException e) { break; }
-                    if (System.currentTimeMillis() - ultimaAtividadeMs >= janela) {
-                        shutdownLatch.countDown();
-                        break;
-                    }
-                }
-            });
+            long janelaMs = (long) aposMinutos * 60_000L;
+            new MonitorInatividade(
+                    janelaMs,
+                    INTERVALO_POLL_MS,
+                    System::currentTimeMillis,
+                    () -> ultimaAtividadeMs,
+                    shutdownLatch::countDown
+            ).iniciar();
         } else {
             respond(ex, 200, "{\"status\":\"shutdown\"}");
             shutdownLatch.countDown();
