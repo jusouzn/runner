@@ -54,6 +54,7 @@ jobs:
 
       - name: Testes com cobertura
         working-directory: projetos/${{ matrix.module }}
+        shell: bash
         run: go test -covermode=atomic -coverprofile=coverage.out ./...
 
       - name: Resumo de cobertura
