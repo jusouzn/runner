@@ -68,6 +68,14 @@ public class Pkcs11SignatureService implements SignatureService {
 
     @Override
     public String validate(String conteudo, String assinatura, String pin) {
+        if (pin == null || pin.length() < 4) {
+            throw new IllegalArgumentException(
+                    "O parâmetro --pin possui tamanho incorreto (deve ter no mínimo 4 dígitos)");
+        }
+        if (!pin.matches("\\d+")) {
+            throw new IllegalArgumentException(
+                    "O parâmetro --pin deve conter apenas dígitos numéricos");
+        }
         if (conteudo == null || conteudo.isBlank()) {
             throw new IllegalArgumentException("O parâmetro --conteudo é obrigatório");
         }
