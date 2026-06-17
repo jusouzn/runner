@@ -15,7 +15,7 @@ verificada pelo workflow de release contra a tag.
 - Testes de contrato CLI ↔ `assinador.jar` (subprocess e HTTP reais) e cenários
   negativos: JAR/JVM ausentes, conexão recusada, payload inválido, porta ocupada (#14).
 - Teste do timer de auto-shutdown por inatividade (#14).
-- `--version` passa a reportar tag + commit curto (rastreabilidade) (#16).
+- `version` passa a reportar tag + commit curto (rastreabilidade) (#16).
 - Manifesto `release.json` gerado por release e verificado contra a tag (#16).
 
 ### Alterado
