@@ -67,8 +67,12 @@ public final class Pkcs11Support {
      * exercendo {@code C_OpenSession}/{@code C_Login} no módulo.
      */
     public static KeyStore abrirKeyStore(Provider provedor, String pin) throws Exception {
+        if (pin == null || pin.isBlank()) {
+            throw new IllegalArgumentException(
+                    "O parâmetro --pin é obrigatório para abrir o KeyStore PKCS#11");
+        }
         KeyStore ks = KeyStore.getInstance("PKCS11", provedor);
-        ks.load(null, pin == null ? null : pin.toCharArray());
+        ks.load(null, pin.toCharArray());
         return ks;
     }
 }
