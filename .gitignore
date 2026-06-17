@@ -2,6 +2,10 @@
 projetos/assinatura-go/vendor/
 projetos/simulador-go/vendor/
 
+# Relatórios de cobertura (gerados em CI/local, publicados como artefato)
+coverage.out
+coverage.html
+
 # Java / Maven
 projetos/assinador-java/target/
 projetos/simulador-java/target/

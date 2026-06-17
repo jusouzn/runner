@@ -1,0 +1,15 @@
+# Configuração do golangci-lint (v2). Linters padrão: errcheck, govet,
+# ineffassign, staticcheck, unused — checagens de valor real, sem ruído.
+version: "2"
+
+linters:
+  exclusions:
+    # Preset que ignora erros de funções de limpeza idiomáticas
+    # (Close/Flush/os.Remove em defer), onde tratar o erro não agrega valor.
+    presets:
+      - std-error-handling
+    rules:
+      # Criação de diretórios em extração/persistência de estado: o erro real
+      # aparece logo adiante (ao escrever o arquivo dentro do diretório).
+      - linters: [errcheck]
+        text: "os.MkdirAll"
