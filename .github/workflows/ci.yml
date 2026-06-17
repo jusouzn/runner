@@ -164,3 +164,42 @@ jobs:
         env:
           ASSINADOR_JAR: ${{ github.workspace }}/projetos/assinador-java/target/assinador.jar
         run: go test -tags=contract -run Contrato ./internal/invoker/
+
+  # ── Integração PKCS#11 com SoftHSM2 (token real) — ver ADR-0004 ────────────
+  pkcs11-integration:
+    name: Integração PKCS#11 (SoftHSM2)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Instalar SoftHSM2
+        run: sudo apt-get update && sudo apt-get install -y softhsm2
+
+      - name: Inicializar token PKCS#11
+        run: |
+          export SOFTHSM2_CONF="$HOME/softhsm2.conf"
+          mkdir -p "$HOME/softhsm-tokens"
+          echo "directories.tokendir = $HOME/softhsm-tokens" > "$SOFTHSM2_CONF"
+          softhsm2-util --init-token --slot 0 --label runner-test --pin 1234 --so-pin 0000
+          MODULE="$(find /usr/lib -name 'libsofthsm2.so' | head -1)"
+          if [ -z "$MODULE" ]; then
+            echo "Erro: libsofthsm2.so não encontrada após instalar softhsm2" >&2
+            exit 1
+          fi
+          echo "Módulo: $MODULE"
+          {
+            echo "SOFTHSM2_CONF=$SOFTHSM2_CONF"
+            echo "PKCS11_MODULE=$MODULE"
+            echo "PKCS11_PIN=1234"
+          } >> "$GITHUB_ENV"
+
+      - name: Executar testes de integração PKCS#11
+        working-directory: projetos/assinador-java
+        run: ./mvnw -B test -Dtest=Pkcs11IntegrationTest -DfailIfNoTests=false
