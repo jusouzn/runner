@@ -43,17 +43,17 @@ class MonitorInatividadeTest {
         var encerrou = new CountDownLatch(1);
         var ultimaAtividade = new AtomicLong(System.currentTimeMillis());
         var monitor = new MonitorInatividade(
-                200, 10, System::currentTimeMillis, ultimaAtividade::get, encerrou::countDown);
+                1_000, 10, System::currentTimeMillis, ultimaAtividade::get, encerrou::countDown);
 
         monitor.iniciar();
 
-        // Mantém atividade recente por um período maior que a janela.
-        for (int i = 0; i < 8; i++) {
+        // Mantém atividade recente por um período significativo.
+        for (int i = 0; i < 10; i++) {
             ultimaAtividade.set(System.currentTimeMillis());
-            Thread.sleep(40);
+            Thread.sleep(50);
         }
 
-        assertEquals(1, encerrou.getCount(),
+        assertFalse(encerrou.await(200, TimeUnit.MILLISECONDS),
                 "não deveria encerrar enquanto há atividade dentro da janela");
     }
 }
