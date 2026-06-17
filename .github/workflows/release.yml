@@ -41,6 +41,16 @@ jobs:
         id: ver
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
 
+      - name: Verificar coerência da tag com release.json
+        run: |
+          DECLARADA="$(jq -r .version release.json)"
+          TAG="${{ steps.ver.outputs.VERSION }}"
+          if [ "$DECLARADA" != "$TAG" ]; then
+            echo "::error::tag v$TAG diverge de release.json (version=$DECLARADA). Atualize release.json antes de tagear."
+            exit 1
+          fi
+          echo "release.json coerente com a tag: $TAG"
+
       # ── Compilação — assinatura CLI ───────────────────────────────────────
       - name: Resolver dependências Go (assinatura)
         working-directory: projetos/assinatura-go
@@ -50,7 +60,9 @@ jobs:
         working-directory: projetos/assinatura-go
         run: |
           VERSION="${{ steps.ver.outputs.VERSION }}"
-          LDFLAGS="-X github.com/jusouzn/assinatura/cmd.Version=${VERSION}"
+          COMMIT="$(git rev-parse --short HEAD)"
+          DATE="$(date -u +%Y-%m-%d)"
+          LDFLAGS="-X github.com/jusouzn/assinatura/cmd.Version=${VERSION} -X github.com/jusouzn/assinatura/cmd.Commit=${COMMIT} -X github.com/jusouzn/assinatura/cmd.Date=${DATE}"
           mkdir -p ../../dist
           GOOS=linux   GOARCH=amd64 go build -ldflags="${LDFLAGS}" \
             -o "../../dist/assinatura-${VERSION}-linux-amd64" .
@@ -68,7 +80,9 @@ jobs:
         working-directory: projetos/simulador-go
         run: |
           VERSION="${{ steps.ver.outputs.VERSION }}"
-          LDFLAGS="-X github.com/jusouzn/simulador/cmd.Version=${VERSION}"
+          COMMIT="$(git rev-parse --short HEAD)"
+          DATE="$(date -u +%Y-%m-%d)"
+          LDFLAGS="-X github.com/jusouzn/simulador/cmd.Version=${VERSION} -X github.com/jusouzn/simulador/cmd.Commit=${COMMIT} -X github.com/jusouzn/simulador/cmd.Date=${DATE}"
           GOOS=linux   GOARCH=amd64 go build -ldflags="${LDFLAGS}" \
             -o "../../dist/simulador-${VERSION}-linux-amd64" .
           GOOS=windows GOARCH=amd64 go build -ldflags="${LDFLAGS}" \
@@ -88,6 +102,23 @@ jobs:
       - name: Gerar SHA256SUMS
         working-directory: dist
         run: sha256sum * > SHA256SUMS
+
+      # ── Manifesto da release (release.json) ────────────────────────────────
+      - name: Gerar release.json
+        working-directory: dist
+        run: |
+          VERSION="${{ steps.ver.outputs.VERSION }}"
+          COMMIT="$(git -C "${{ github.workspace }}" rev-parse --short HEAD)"
+          DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          jq -n \
+            --arg version "$VERSION" \
+            --arg tag "v$VERSION" \
+            --arg commit "$COMMIT" \
+            --arg date "$DATE" \
+            --argjson artifacts "$(ls | grep -vE '\.(sig|pem)$' | jq -R . | jq -s .)" \
+            '{schema: "runner.release/v1", version: $version, tag: $tag, commit: $commit, date: $date, artifacts: $artifacts}' \
+            > release.json
+          cat release.json
 
       # ── Assinatura Cosign (keyless / OIDC) ────────────────────────────────
       - name: Assinar artefatos com Cosign
