@@ -134,7 +134,16 @@ func startServer(port int) error {
 
 	baseURL := fmt.Sprintf("http://localhost:%d", port)
 	if err := waitReady(baseURL, exited, 20*time.Second); err != nil {
-		return fmt.Errorf("assinador.jar (PID %d) não ficou pronto na porta %d: %w", cmd.Process.Pid, port, err)
+		// Cleanup best-effort: o state file pode estar apontando para um PID
+		// morto (ou o processo pode seguir rodando após timeout). Removemos o
+		// arquivo e tentamos encerrar o processo para evitar estado
+		// inconsistente em chamadas futuras de Stop/EnsureRunning.
+		pid := cmd.Process.Pid
+		killPID(pid) //nolint:errcheck
+		if sf, sfErr := stateFilePath(); sfErr == nil {
+			os.Remove(sf)
+		}
+		return fmt.Errorf("assinador.jar (PID %d) não ficou pronto na porta %d: %w", pid, port, err)
 	}
 	return nil
 }
