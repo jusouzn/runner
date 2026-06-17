@@ -3,8 +3,8 @@ name: CI
 on:
   push:
     branches: [main]
+  # Sem filtro de branch: roda também em PRs encadeados (base != main).
   pull_request:
-    branches: [main]
 
 permissions:
   contents: read
