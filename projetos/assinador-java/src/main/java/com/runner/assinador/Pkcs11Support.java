@@ -31,6 +31,12 @@ public final class Pkcs11Support {
      */
     public static Provider carregarProvedor(String nomeProvedor, String bibliotecaPath, int slotListIndex)
             throws IOException {
+        if (nomeProvedor == null || nomeProvedor.isBlank()) {
+            throw new IllegalArgumentException("nomeProvedor é obrigatório");
+        }
+        if (bibliotecaPath == null || bibliotecaPath.isBlank()) {
+            throw new IllegalArgumentException("bibliotecaPath é obrigatório");
+        }
         Provider base = Security.getProvider("SunPKCS11");
         if (base == null) {
             throw new IllegalStateException("Provedor SunPKCS11 indisponível nesta JVM");
