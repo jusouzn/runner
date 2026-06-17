@@ -59,6 +59,8 @@ public class Pkcs11SignatureService implements SignatureService {
                         "algorithm": "%s"
                       }
                     }""".formatted(assinatura, alg);
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new IllegalArgumentException("Algoritmo não suportado: " + alg, e);
         } catch (java.security.GeneralSecurityException e) {
             throw new IllegalStateException("Falha ao assinar via PKCS#11: " + e.getMessage(), e);
         }
