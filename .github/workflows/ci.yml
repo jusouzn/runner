@@ -153,6 +153,10 @@ jobs:
           echo "directories.tokendir = $HOME/softhsm-tokens" > "$SOFTHSM2_CONF"
           softhsm2-util --init-token --slot 0 --label runner-test --pin 1234 --so-pin 0000
           MODULE="$(find /usr/lib -name 'libsofthsm2.so' | head -1)"
+          if [ -z "$MODULE" ]; then
+            echo "Erro: libsofthsm2.so não encontrada após instalar softhsm2" >&2
+            exit 1
+          fi
           echo "Módulo: $MODULE"
           {
             echo "SOFTHSM2_CONF=$SOFTHSM2_CONF"
