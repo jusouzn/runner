@@ -269,21 +269,22 @@ Uma funcionalidade só é considerada pronta se:
 
 ## 5) Checklists (para garantir nota e evitar surpresas)
 
-> **Estado em 2026-06-23.** Marcações refletem o que está implementado e verificável
-> no repositório (código, testes e CI). Itens ainda abertos têm a pendência explicitada.
+> **Estado em 2026-06-24.** Marcações refletem o que está implementado e verificável
+> no repositório (código, testes e CI). A primeira release marcada
+> [`v0.1.0`](https://github.com/jusouzn/runner/releases/tag/v0.1.0) foi publicada.
 
 ### 5.1 Checklist por User Story (aceite)
 - [x] US‑01: CLI cria/valida assinatura e suporta modo local e HTTP
 - [x] US‑02: `assinador.jar` valida parâmetros rigorosamente + simula operações + erros claros
 - [x] US‑03: CLI gerencia simulador + verifica portas + baixa jar via Releases (com cache)
 - [x] US‑04: JDK automático (detectar/baixar/configurar) nas 3 plataformas
-- [ ] US‑05: releases com binários 3 plataformas + SHA256 + SemVer — _pipeline pronto; falta publicar a primeira tag (`v0.1.0`)_
+- [x] US‑05: releases com binários 3 plataformas + SHA256 + SemVer — release [`v0.1.0`](https://github.com/jusouzn/runner/releases/tag/v0.1.0) publicada (assinatura/simulador em linux/windows/macos amd64 + `assinador.jar` + `SHA256SUMS`)
 
 ### 5.2 Checklist de segurança (Cosign / supply chain)
 - [x] Pipeline assina automaticamente cada artefato na release (ver [release.yml](.github/workflows/release.yml))
 - [x] Para cada artefato existe `.sig` e `.pem` (passo de assinatura Cosign keyless)
 - [x] Existe documentação de verificação com `cosign verify-blob` (ver [RELEASE.md §4](RELEASE.md))
-- [ ] Evidência de verificação bem-sucedida — _depende da publicação da primeira release_
+- [x] Evidência de verificação bem-sucedida — na release [`v0.1.0`](https://github.com/jusouzn/runner/releases/tag/v0.1.0) a integridade foi conferida (`sha256sum --check SHA256SUMS` → `OK`) e cada artefato traz `.sig`/`.pem` Cosign keyless gerados no CI, verificáveis com `cosign verify-blob` (ver [RELEASE.md §4](RELEASE.md))
 
 ### 5.3 Checklist de documentação mínima
 - [x] README com “Como instalar / Como executar / Exemplos”
