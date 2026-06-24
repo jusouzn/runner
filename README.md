@@ -21,9 +21,10 @@ O Runner facilita o uso, via linha de comando, de aplicações Java do ecossiste
 | `assinador.jar` (validação + simulação + servidor HTTP) | Implementado |
 | `simulador` CLI (start/stop/status, download via Releases) | Implementado |
 | Provisionamento automático de JDK | Implementado (Linux/macOS/Windows amd64) |
-| Build multiplataforma (CI) | Cross-compile em CI (Ubuntu) para Linux/Windows/macOS amd64; execução nativa no Windows pendente |
-| Releases assinadas com Cosign + checksums SHA256 | Pipeline pronto, primeira tag pendente |
-| PKCS#11 real | Pendente — escopo do marco final |
+| Testes em CI (Windows + Linux) | Implementado — testes Go e Java executam nativamente em `windows-latest` e `ubuntu-latest` |
+| Build multiplataforma (CI) | Implementado — cross-compile para Linux/Windows/macOS amd64 |
+| Integração PKCS#11 real | Implementado — testes contra token SoftHSM2 no CI (ver [ADR-0004](docs/adr/0004-pkcs11-com-softhsm2.md)) |
+| Releases assinadas com Cosign + checksums SHA256 | Pipeline pronto; primeira tag (`v0.1.0`) pendente de publicação |
 
 A versão estável é a `main`. Releases serão publicadas em [GitHub Releases](../../releases) sob versionamento [SemVer](https://semver.org/lang/pt-BR/).
 

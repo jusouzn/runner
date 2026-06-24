@@ -269,22 +269,25 @@ Uma funcionalidade só é considerada pronta se:
 
 ## 5) Checklists (para garantir nota e evitar surpresas)
 
+> **Estado em 2026-06-23.** Marcações refletem o que está implementado e verificável
+> no repositório (código, testes e CI). Itens ainda abertos têm a pendência explicitada.
+
 ### 5.1 Checklist por User Story (aceite)
-- [ ] US‑01: CLI cria/valida assinatura e suporta modo local e HTTP
-- [ ] US‑02: `assinador.jar` valida parâmetros rigorosamente + simula operações + erros claros
-- [ ] US‑03: CLI gerencia simulador + verifica portas + baixa jar via Releases (com cache)
-- [ ] US‑04: JDK automático (detectar/baixar/configurar) nas 3 plataformas
-- [ ] US‑05: releases com binários 3 plataformas + SHA256 + SemVer
+- [x] US‑01: CLI cria/valida assinatura e suporta modo local e HTTP
+- [x] US‑02: `assinador.jar` valida parâmetros rigorosamente + simula operações + erros claros
+- [x] US‑03: CLI gerencia simulador + verifica portas + baixa jar via Releases (com cache)
+- [x] US‑04: JDK automático (detectar/baixar/configurar) nas 3 plataformas
+- [ ] US‑05: releases com binários 3 plataformas + SHA256 + SemVer — _pipeline pronto; falta publicar a primeira tag (`v0.1.0`)_
 
 ### 5.2 Checklist de segurança (Cosign / supply chain)
-- [ ] Pipeline assina automaticamente cada artefato na release
-- [ ] Para cada artefato existe `.sig` e `.pem`
-- [ ] Existe documentação de verificação com `cosign verify-blob`
-- [ ] Evidência de verificação bem-sucedida (log/output ou instrução reproduzível)
+- [x] Pipeline assina automaticamente cada artefato na release (ver [release.yml](.github/workflows/release.yml))
+- [x] Para cada artefato existe `.sig` e `.pem` (passo de assinatura Cosign keyless)
+- [x] Existe documentação de verificação com `cosign verify-blob` (ver [RELEASE.md §4](RELEASE.md))
+- [ ] Evidência de verificação bem-sucedida — _depende da publicação da primeira release_
 
 ### 5.3 Checklist de documentação mínima
-- [ ] README com “Como instalar / Como executar / Exemplos”
-- [ ] Manual do usuário do CLI (`assinatura`)
-- [ ] Documentação técnica da integração (local e HTTP)
-- [ ] Guia do provisionamento de JDK
-- [ ] Guia de releases (SemVer + checksums + cosign)
+- [x] README com “Como instalar / Como executar / Exemplos”
+- [x] Manual do usuário do CLI (`assinatura`) — README + [INTEGRACAO.md](INTEGRACAO.md)
+- [x] Documentação técnica da integração (local e HTTP) — [INTEGRACAO.md](INTEGRACAO.md)
+- [x] Guia do provisionamento de JDK — [JDK.md](JDK.md)
+- [x] Guia de releases (SemVer + checksums + cosign) — [RELEASE.md](RELEASE.md)
